@@ -1,45 +1,168 @@
 ;; -*- coding: utf-8 -*-
-#+TITLE: init
-This is the initialization file for `beorg`.
+#+TITLE: beorg Scheme Expressions
+This is the initialization file for `beorg'.
+
+https://beorgapp.com/manual/scripting/
+https://beorg.app/learning/
+
 * UI
-#+begin_src scheme
-  (defvar ui-swap-item-swipe-direction #t "Whether the swipe direction on items in the agenda or TODO tab should be swapped. If #t then swiping left-to-right will show state change options rather than editing the item in the outliner.")
-#+end_src
-
-* Org mode
-#+begin_src scheme
-  ;; -------------- 格式相关 -------------
-  (defvar org-allow-math #t
-    "Allow MathJax to be used.")
-  (defvar org-log-done-transition #t)
-  (defvar org-tags-column -60)
-
-  ;; -------------- item editor quick action -------------
-  (define (zeit/schedule-at-today)
-    (set-current-item-scheduled! (current-date))
-    )
-  (define (zeit/schedule-for-tomorrow)
-    (set-current-item-scheduled! (date-adjust (current-date) 1 'days))
-    )
-
-  (set! item-editor-menu
-        '(("Schedule at today🌻" (zeit/schedule-at-today))
-          ("Schedule for tomorrow🌅" (zeit/schedule-for-tomorrow))
-          )
-        )
-#+end_src
 
 #+begin_src scheme
-  (set! filter-min-chars 2) ;; 使中文单字搜索生效
-  (filter-add "Top Priority" (lambda (item) (string=? (item-priority item) "A"))) ;; 任务过滤
-  (defvar org-todo-action-keywords '(
-                "TODO°"
-                "DOING"
-                "STUCK")
-    "A list of keywords to use for TODO action states. If empty then the value entered on the Settings tab is used.")
-  (defvar org-todo-done-keywords '(
-                "CANC."
-                "FAIL."
-                "DONE√")
-    "A list of keywords to use for TODO done states. If empty then the value entered on the Settings tab is used.")
+  (defvar ui-swap-item-swipe-direction #t
+    "Whether the swipe direction on items in the agenda or TODO tab should be
+  swapped. If #t then swiping left-to-right will show state change options rather
+  than editing the item in the outliner.")
 #+end_src
+
+* Item Editor Quick Action
+
+#+begin_src scheme
+  (define (my/schedule-for-today)
+    (set-current-item-scheduled! (current-date)))
+
+  (define (my/schedule-todo-for-today)
+    (begin (set-current-item-scheduled! (current-date))
+           (set-current-item-state! "TODO")))
+
+  (define (add-location-to-current-item)
+    (location-get-lat-lon (lambda (lat lon)
+                            (set-current-item-property! "location"
+                                                        (string-append lat "," lon)))))
+
+  (define (make-current-item-top-priority-today)
+    (begin (set-current-item-scheduled! (current-date))
+           (set-current-item-priority! "A")))
+
+  (define (schedule-current-item-for-tomorrow)
+    (set-current-item-scheduled! (date-adjust (current-date) 1 'days)))
+
+  (define (my/schedule-todo-for-tomorrow)
+    (begin (set-current-item-scheduled! (date-adjust (current-date) 1 'days))
+           (set-current-item-state! "TODO")))
+
+  (define (remove-all-dates-from-current-item)
+    (begin (delete-current-item-scheduled!)
+           (delete-current-item-deadline!)
+           (delete-current-item-active-date!)))
+
+  (defvar item-editor-menu
+    '(("Assign current location" (add-location-to-current-item))
+      ("Make top priority today" (make-current-item-top-priority-today))
+      ("Schedule TODO for today" (my/schedule-todo-for-today))
+      ("Schedule for today" (my/schedule-for-today))
+      ("Schedule TODO for tomorrow" (my/schedule-todo-for-tomorrow))
+      ("Schedule for tomorrow" (schedule-current-item-for-tomorrow))
+      ("Remove all dates" (remove-all-dates-from-current-item)))
+    "The items defined here can be run directly from the item editor screen to make quick adjustments.")
+#+end_src
+
+* 使中文单字搜索生效
+
+#+begin_src scheme
+  (set! filter-min-chars 2)
+#+end_src
+
+* Disable Deletion Operation
+
+#+BEGIN_SRC scheme
+  (set! file-disable-delete #t
+        "If set to #t then the option to delete files won't be available in beorg.")
+#+END_SRC
+
+* Show Built-in TODO Filter
+
+#+BEGIN_SRC scheme
+  (set! filter-include-default #t
+        "Whether or not the built-in TODO filters should be shown")
+#+END_SRC
+
+* TODO States
+
+#+begin_src scheme
+  (set! org-todo-action-keywords '("TODO" "DONE" "IN-PROGRESS" "WAIT" "CANCLE"))
+#+end_src
+
+* TODO Priorities
+
+#+BEGIN_SRC scheme
+  (set! org-priorities '("A" "B" "C"))
+#+END_SRC
+
+* Excluding Tasks
+
+https://beorg.app/learning/excluding-tasks-from-specific-files-for-the-agenda-and-todo-lists/
+
+#+BEGIN_SRC scheme
+  (set! agenda-exclude-files
+        '("archives.org"
+          "init.org"))
+
+  (set! todo-exclude-files
+        agenda-exclude-files)
+#+END_SRC
+
+* Custom TODO filters
+
+** Top Priority TODO
+
+#+begin_src scheme
+  (filter-add "❗️Top Priority TODO"
+              (lambda (item)
+                (and
+                 (string=? (item-priority item) "A")
+                 (string=? (item-state item) "TODO")
+                 (not (member "ARCHIVE" (item-tags item)))
+                 )))
+#+end_src
+
+** IN-PROGRESS, TODO and WAIT
+
+#+begin_src scheme
+  (filter-add "🪬 IN-PROGRESS, TODO and WAIT"
+              (lambda (item)
+                (and (or
+                      (string=? (item-state item) "IN-PROGRESS")
+                      (string=? (item-state item) "TODO")
+                      (string=? (item-state item) "WAIT")
+                      )
+                     (not (member "ARCHIVE" (item-tags item)))
+                     )))
+#+end_src
+
+** TODO without Tag - ARCHIVE
+
+#+begin_src scheme
+  (filter-add "🔨 TODO w/o ARCHIVE"
+              (lambda (item)
+                (and (string=? (item-state item) "TODO") (not (member "ARCHIVE" (item-tags item))))
+                ))
+#+end_src
+
+** inbox.org TODO
+
+#+begin_src scheme
+  (filter-add "📥 inbox.org TODO"
+              (lambda (item)
+                (and
+                 (string=? (item-file item) "inbox.org")
+                 (string=? (item-state item) "TODO")
+                 )))
+#+end_src
+
+** Templates
+
+https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
+
+#+BEGIN_SRC scheme
+  (set! item-templates
+        '(
+          ;;; Quick TODO - schedule for today, don't prompt for notes
+          ("📎 QTODO"
+           "s TODO f inbox.org sch 0 h Shortterm n \"Captured: [%now%]\"")
+          ;;; Personal TODO - schedule for today but prompt for notes immediately
+          ("📝 Personal TODO"
+           "s TODO f inbox.org sch 0 h Personal n \"Captured: [%now%]\n\n\" e")
+          ))
+#+END_SRC
+
+
