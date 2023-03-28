@@ -62,6 +62,13 @@ https://beorg.app/learning/
   (set! filter-min-chars 2)
 #+end_src
 
+* Add New Line between Headlines
+https://appsonthemove.freshdesk.com/support/discussions/topics/14000015618
+
+#+BEGIN_SRC scheme
+  (set! beorg-add-newline-between-headlines #t)
+#+END_SRC
+
 * Disable Deletion Operation
 
 #+BEGIN_SRC scheme
@@ -166,3 +173,42 @@ https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
 #+END_SRC
 
 
+
+* Templates
+
+https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
+
+#+BEGIN_SRC scheme
+  (set! item-templates
+        '(
+          ;;; Quick TODO - schedule for today, don't prompt for notes
+          ("📎 QTODO"
+           "s TODO f inbox.org sch 0 h Shortterm n \"Captured: [%now%]\"")
+          ;;; Personal TODO - schedule for today but prompt for notes immediately
+          ("📝 Personal TODO"
+           "s TODO f inbox.org sch 0 h Personal n \"Captured: [%now%]\n\n\" e")
+          ))
+#+END_SRC
+
+* Editor Toolbar Items
+
+#+BEGIN_SRC scheme
+  (defvar editor-toolbar-items '(
+                                 ("icon-time" (insert (date->string (current-date) "<~Y-~m-~d ~a ~H:~M>")))
+                                 ("icon-left" (backward-char))
+                                 ("icon-right" (forward-char))
+                                 ("icon-list" (insert "+ "))
+                                 ("icon-todolist" (insert "+ [ ] "))
+                                 ("icon-change" (show-transform-commands))
+                                 ("icon-tools" (show-tools-commands))
+                                 ("icon-settings" (insert-code-snippet)))
+    "A list of buttons to show above the keyboard when editing notes. The list is a list of lists stating the button text and the code to run. For example '((\"<\" (backward-char)) (\">\" (forward-char))) defines a toolbar with the buttons < and > which respectively execute the functions backward-char and forward-char.")
+#+END_SRC
+
+* Subfolder Support
+
+https://appsonthemove.freshdesk.com/support/discussions/topics/14000016681
+
+#+BEGIN_SRC scheme
+  (set! sync-subfolders #t)
+#+END_SRC
