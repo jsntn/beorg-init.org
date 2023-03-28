@@ -156,24 +156,6 @@ https://beorg.app/learning/excluding-tasks-from-specific-files-for-the-agenda-an
                  )))
 #+end_src
 
-** Templates
-
-https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
-
-#+BEGIN_SRC scheme
-  (set! item-templates
-        '(
-          ;;; Quick TODO - schedule for today, don't prompt for notes
-          ("📎 QTODO"
-           "s TODO f inbox.org sch 0 h Shortterm n \"Captured: [%now%]\"")
-          ;;; Personal TODO - schedule for today but prompt for notes immediately
-          ("📝 Personal TODO"
-           "s TODO f inbox.org sch 0 h Personal n \"Captured: [%now%]\n\n\" e")
-          ))
-#+END_SRC
-
-
-
 * Templates
 
 https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
