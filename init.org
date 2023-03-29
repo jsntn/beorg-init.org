@@ -86,7 +86,7 @@ https://appsonthemove.freshdesk.com/support/discussions/topics/14000015618
 * TODO States
 
 #+begin_src scheme
-  (set! org-todo-action-keywords '("TODO" "DONE" "IN-PROGRESS" "WAIT" "CANCLE"))
+  (set! org-todo-action-keywords '("TODO" "DONE" "IN-PROGRESS" "WAIT" "CANCELED"))
 #+end_src
 
 * TODO Priorities
@@ -109,7 +109,6 @@ https://beorg.app/learning/excluding-tasks-from-specific-files-for-the-agenda-an
 #+END_SRC
 
 * Custom TODO filters
-
 ** Top Priority TODO
 
 #+begin_src scheme
@@ -171,8 +170,6 @@ https://appsonthemove.freshdesk.com/support/discussions/topics/14000015064
            "s TODO f inbox.org sch 0 h Personal n \"Captured: [%now%]\n\n\" e")
           ))
 #+END_SRC
-
-
 
 * Templates
 
